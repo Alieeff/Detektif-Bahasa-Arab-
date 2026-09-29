@@ -56,6 +56,12 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .end{background:var(--paper);color:var(--text);border-radius:8px;padding:20px;margin-top:16px}
 .end h3{margin:0 0 8px;font-size:1.5rem}
 .go{background:var(--amber);border:0;border-radius:6px;padding:10px 18px;font-weight:800;color:#222;margin-top:8px}
+.modal{position:fixed;inset:0;z-index:30;background:#000000cc;display:flex;align-items:center;justify-content:center;padding:18px;animation:fade .3s}
+.box{width:100%;max-width:520px;min-height:75vh;background:var(--paper);color:var(--text);border-radius:12px;border:4px solid var(--red);padding:28px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 0 60px #d8452c66;animation:pop .35s}
+.box h3{font-size:2.6rem;margin:4px 0;color:var(--red);line-height:1.1}
+.box .go{font-size:1.1rem;padding:12px 28px}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
 .shake{animation:sh .3s}
 @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){.shake,.hud.hit{animation:none}.bar i{transition:none}}
@@ -116,10 +122,10 @@ const clues=[
   note:'Pelaku bertas hitam. Khalid dan Ahmad sama-sama bertas hitam, tetapi salah satunya punya alibi.',bagclue:true}
 ];
 const T=30;
-let lives,score,streak,solved,open,tleft,timer,showTxt,showTr,over,failed;
+let lives,score,streak,solved,open,tleft,timer,showTxt,showTr,over,failed,left;
 const $=id=>document.getElementById(id);
 
-function start(){lives=3;score=0;streak=0;solved=new Set();open=null;showTxt=false;showTr=false;over=false;failed=new Set();
+function start(){lives=3;score=0;streak=0;solved=new Set();open=null;showTxt=false;showTr=false;over=false;failed=new Set();left={};
   clearInterval(timer);$('panel').innerHTML='';$('end').innerHTML='';render()}
 function speak(t){
   if(!('speechSynthesis' in window)){alert('Browser ini tidak mendukung suara. Coba Chrome atau Safari.');return}
@@ -139,11 +145,14 @@ function render(){
   $('accHint').textContent=over?'':all?'Semua bukti terkumpul. Tuduh dengan hati-hati, salah tuduh mengurangi nyawa.':'Buktikan semua petunjuk untuk membuka tuduhan.';
 }
 function openClue(i){
-  if(over)return;open=i;showTxt=false;showTr=false;clearInterval(timer);tleft=T;
+  if(over||open===i)return;
+  if(open!==null&&!solved.has(open))left[open]=tleft;
+  open=i;showTxt=false;showTr=false;clearInterval(timer);
+  tleft=left[i]!==undefined?left[i]:T;
   if(!solved.has(i))timer=setInterval(tick,100);
   drawPanel()}
 function tick(){
-  tleft-=.1;const b=$('tb');
+  tleft-=.1;left[open]=tleft;const b=$('tb');
   if(b){b.firstElementChild.style.width=Math.max(0,tleft/T*100)+'%';b.classList.toggle('low',tleft<10)}
   if(tleft<=0){tleft=T;streak=0;loseLife('Waktu habis!')}}
 function loseLife(msg){
@@ -176,8 +185,14 @@ function answer(j){
     failed.add(open+'-'+j);streak=0;loseLife('Jawaban salah!')}}
 function gameOver(){
   clearInterval(timer);over=true;render();$('panel').innerHTML='';
-  $('end').innerHTML=`<div class="end"><h3>Kasus gagal. Nyawamu habis.</h3><p>Pelaku lolos kali ini. Skor akhir: ${score}. Dengarkan lebih teliti dan cocokkan alibi sebelum menuduh.</p><button class="go" onclick="start()">Ulangi kasus</button></div>`;
-  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
+  $('end').innerHTML=`<div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="lt"><div class="box">
+  <div style="font-size:4rem">💔</div>
+  <h3 id="lt">Anda Kalah!</h3>
+  <p class="ar" lang="ar" style="font-size:2rem;margin:0;color:var(--red)">خَسِرْتَ الْقَضِيَّةَ</p>
+  <p>Nyawamu habis dan pelaku berhasil lolos.<br>Dengarkan lebih teliti dan cocokkan alibi sebelum menuduh.</p>
+  <p><b>Skor akhir: ${score}</b></p>
+  <button class="go" id="retry" onclick="start()">Coba lagi</button></div></div>`;
+  $('retry').focus()}
 function accuse(k){
   if(k==='ahmad'){
     over=true;score+=lives*300;render();
