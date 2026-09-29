@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مُحَقِّقُ اللُّغَة – Detektif Bahasa Arab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#16222f;--desk:#1f3044;--paper:#f1ecdf;--paper2:#e4ddca;--text:#1b1b1b;--amber:#e8b04a;--red:#c4432c;--green:#3f8f6b;--mute:#9fb0c2}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ink);color:#e9eef4;font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.55;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+.ar{font-family:'Amiri',serif;direction:rtl;line-height:1.9}
+h1{margin:8px 0 0;font-size:clamp(2.6rem,11vw,4.4rem);font-weight:700;line-height:1.3;color:var(--amber)}
+.sub{margin:0 0 22px;color:var(--mute)}
+.bar{height:8px;background:var(--desk);border-radius:8px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .4s}
+h2{font-size:1.15rem;margin:28px 0 10px;font-weight:800}
+.story{background:var(--desk);border-left:4px solid var(--red);padding:14px 16px;border-radius:4px}
+.clues{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.clue{background:var(--paper);color:var(--text);border:0;border-radius:4px;padding:12px;text-align:left;box-shadow:0 3px 0 #0006;position:relative}
+.clue b{display:block}.clue small{color:#5a5a5a}
+.clue.done{background:var(--paper2)}
+.clue.done::after{content:"✔";position:absolute;right:10px;top:8px;color:var(--green);font-weight:800}
+.clue.open{outline:3px solid var(--amber)}
+.panel{background:var(--paper);color:var(--text);border-radius:6px;padding:18px;margin-top:14px}
+.panel .say{font-size:1.9rem;background:var(--paper2);padding:8px 14px;border-radius:4px;margin:10px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.mini{background:transparent;border:2px solid var(--text);color:var(--text);border-radius:20px;padding:6px 14px;font-weight:600}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid #cfc8b4;border-radius:6px;padding:10px 12px;margin:6px 0;color:var(--text)}
+.opt:hover{border-color:var(--text)}
+.opt.ok{background:#d5eadd;border-color:var(--green)}
+.opt.no{background:#f4d6cf;border-color:var(--red)}
+.note{margin-top:10px;padding:10px 12px;background:#fff6dc;border-left:4px solid var(--amber);border-radius:3px}
+.tr{font-style:italic;color:#444}
+.sus{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.s{background:var(--desk);border:2px solid #2d445e;border-radius:6px;padding:12px;text-align:center;color:#e9eef4}
+.s .ar{font-size:1.7rem;display:block}
+.s.clear{opacity:.5}.s.clear .ar{text-decoration:line-through}
+.s.pick:hover:not(:disabled){border-color:var(--amber)}
+.s:disabled{cursor:not-allowed}
+.hint{color:var(--mute);font-size:.92rem}
+.end{background:var(--paper);color:var(--text);border-radius:6px;padding:20px;margin-top:16px}
+.end h3{margin:0 0 8px;font-size:1.4rem}
+.go{background:var(--amber);border:0;border-radius:6px;padding:10px 18px;font-weight:800;color:#222;margin-top:8px}
+.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1 class="ar" lang="ar">مُحَقِّقُ اللُّغَة</h1>
+<p class="sub">Detektif Bahasa Arab. Pecahkan kasus dengan membaca dan mendengarkan bahasa Arab.</p>
+
+<h2>Kasus 1: Buku Dosen Hilang</h2>
+<div class="story">Kamis siang, buku langka milik Ustadz di ruang dosen lenyap. Ada empat mahasiswa yang dicurigai. Kumpulkan lima petunjuk, pahami isinya, lalu tuduh pelaku yang tepat.</div>
+
+<h2>Petunjuk</h2>
+<div class="bar"><i id="fill"></i></div>
+<div class="hint" id="count"></div>
+<div class="clues" id="clues"></div>
+<div id="panel"></div>
+
+<h2>Tersangka</h2>
+<div class="sus" id="sus"></div>
+<p class="hint" id="accHint"></p>
+<div id="end"></div>
+</main>
+
+<script>
+const suspects=[
+ {k:'khalid',ar:'خَالِد',n:'Khalid',bag:'hijau'},
+ {k:'fatimah',ar:'فَاطِمَة',n:'Fatimah',bag:'merah muda'},
+ {k:'maryam',ar:'مَرْيَم',n:'Maryam',bag:'merah'},
+ {k:'ahmad',ar:'أَحْمَد',n:'Ahmad',bag:'hitam'}
+];
+const clues=[
+ {t:'Catatan Ustadz',type:'baca',ar:'كَانَ الْكِتَابُ عَلَى الْمَكْتَبِ فِي غُرْفَتِي. اخْتَفَى بَيْنَ الظُّهْرِ وَالْعَصْرِ.',
+  tr:'Buku itu ada di meja di ruanganku. Ia hilang antara zuhur dan asar.',
+  q:'Kapan buku itu hilang?',o:['Setelah magrib','Antara zuhur dan asar','Sebelum subuh'],a:1,
+  note:'Buku hilang antara zuhur dan asar. Cek siapa yang punya alibi di waktu itu.'},
+ {t:'Saksi: satpam',type:'dengar',ar:'رَأَيْتُ خَالِدًا فِي الْمَكْتَبَةِ بَعْدَ الظُّهْرِ.',
+  tr:'Aku melihat Khalid di perpustakaan setelah zuhur.',
+  q:'Di mana Khalid setelah zuhur?',o:['Di kantin','Di kelas','Di perpustakaan'],a:2,
+  note:'Khalid di perpustakaan, bukan di ruang dosen.',clear:'khalid'},
+ {t:'Saksi: penjual kantin',type:'dengar',ar:'كَانَتْ فَاطِمَةُ فِي الْكَانْتِينِ مَعَ صَدِيقَاتِهَا حَتَّى الْعَصْرِ.',
+  tr:'Fatimah di kantin bersama teman-temannya sampai asar.',
+  q:'Fatimah bersama siapa di kantin?',o:['Bersama dosen','Sendirian','Bersama teman-temannya'],a:2,
+  note:'Fatimah di kantin sampai asar.',clear:'fatimah'},
+ {t:'Saksi: dosen lain',type:'dengar',ar:'كَانَتْ مَرْيَمُ فِي الْفَصْلِ مَعِي حَتَّى الْعَصْرِ.',
+  tr:'Maryam ada di kelas bersamaku sampai asar.',
+  q:'Maryam ada di mana sampai asar?',o:['Di kelas','Di asrama','Di masjid'],a:0,
+  note:'Maryam di kelas bersama dosen.',clear:'maryam'},
+ {t:'Kamera & laporan',type:'baca',ar:'خَرَجَ طَالِبٌ مِنْ غُرْفَةِ الْأُسْتَاذِ وَمَعَهُ حَقِيبَةٌ سَوْدَاءُ.',
+  tr:'Seorang mahasiswa keluar dari ruangan Ustadz membawa tas hitam.',
+  q:'Apa yang dibawa mahasiswa itu?',o:['Tas hitam','Tas merah','Kotak hijau'],a:0,
+  note:'Pelaku membawa tas hitam. Tas siapa yang hitam? Lihat kartu tersangka.',hl:true}
+];
+const solved=new Set();let open=null,showTr=false,done=false;
+const $=id=>document.getElementById(id);
+
+function speak(t){
+  if(!('speechSynthesis' in window)){alert('Browser ini tidak mendukung suara. Coba Chrome atau Safari.');return}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=.8;speechSynthesis.speak(u);
+}
+function render(){
+  const n=solved.size;
+  $('fill').style.width=(n/clues.length*100)+'%';
+  $('count').textContent=n+' dari '+clues.length+' petunjuk terpecahkan';
+  $('clues').innerHTML=clues.map((c,i)=>`<button class="clue ${solved.has(i)?'done':''} ${open===i?'open':''}" onclick="openClue(${i})"><b>${c.t}</b><small>${c.type==='baca'?'Baca teks':'Dengarkan'}</small></button>`).join('');
+  const cleared=new Set([...solved].map(i=>clues[i].clear).filter(Boolean));
+  const all=n===clues.length;
+  $('sus').innerHTML=suspects.map(s=>{
+    const hl=solved.has(4)?`<small class="hint">Tas ${s.bag}</small>`:'';
+    return `<button class="s pick ${cleared.has(s.k)?'clear':''}" ${all&&!done?'':'disabled'} onclick="accuse('${s.k}')"><span class="ar" lang="ar">${s.ar}</span>${s.n}<br>${hl}${cleared.has(s.k)?'<small class="hint">Punya alibi</small>':''}</button>`}).join('');
+  $('accHint').textContent=all?(done?'':'Semua petunjuk terkumpul. Tap tersangka yang menurutmu pelaku.'):'Selesaikan semua petunjuk untuk membuka tuduhan.';
+}
+function openClue(i){open=i;showTr=false;drawPanel()}
+function drawPanel(){
+  render();
+  if(open===null){$('panel').innerHTML='';return}
+  const c=clues[open],ok=solved.has(open);
+  const text=c.type==='dengar'&&!ok&&!showTxt?`<div class="say hint" style="direction:ltr;font-family:inherit;font-size:1rem">Tekan Dengarkan. Teks disembunyikan supaya kamu melatih menyimak.</div>`:`<div class="say ar" lang="ar">${c.ar}</div>`;
+  $('panel').innerHTML=`<div class="panel"><b>${c.t}</b>${text}
+  <div class="row"><button class="mini" onclick="speak(clues[${open}].ar)">🔊 Dengarkan</button>
+  ${c.type==='dengar'&&!ok?`<button class="mini" onclick="showTxt=!showTxt;drawPanel()">${showTxt?'Sembunyikan':'Tampilkan'} teks</button>`:''}
+  <button class="mini" onclick="showTr=!showTr;drawPanel()">Terjemahan</button></div>
+  ${showTr?`<p class="tr">${c.tr}</p>`:''}
+  <p><b>${c.q}</b></p>
+  ${c.o.map((o,j)=>`<button class="opt ${ok&&j===c.a?'ok':''}" ${ok?'disabled':''} onclick="answer(${j},this)">${o}</button>`).join('')}
+  ${ok?`<div class="note"><b>Catatan detektif:</b> ${c.note}</div>`:''}</div>`;
+}
+let showTxt=false;
+function answer(j,el){
+  const c=clues[open];
+  if(j===c.a){solved.add(open);drawPanel()}
+  else{el.classList.add('no','shake');el.textContent+='  (belum tepat, dengarkan atau baca lagi)'}
+}
+function accuse(k){
+  const s=suspects.find(x=>x.k===k);done=true;render();
+  const win=k==='ahmad';
+  $('end').innerHTML=win?`<div class="end"><h3>Kasus selesai! Pelakunya Ahmad.</h3>
+   <p>Khalid, Fatimah, dan Maryam punya alibi dari kesaksian berbahasa Arab. Kamera merekam mahasiswa bertas hitam, dan hanya tas Ahmad yang hitam.</p>
+   <p class="ar" lang="ar" style="font-size:1.6rem">أَحْمَدُ أَخَذَ الْكِتَابَ. أَحْسَنْتَ يَا مُحَقِّقُ!</p>
+   <button class="go" onclick="location.reload()">Main lagi</button></div>`
+  :`<div class="end"><h3>${s.n} bukan pelakunya.</h3><p>Buka lagi catatan detektif: siapa yang punya alibi, dan siapa yang membawa tas hitam?</p><button class="go" onclick="done=false;$('end').innerHTML='';render()">Coba lagi</button></div>`;
+}
+render();
+</script>
+</body>
+</html>
