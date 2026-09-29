@@ -4,61 +4,71 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>مُحَقِّقُ اللُّغَة – Detektif Bahasa Arab</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#16222f;--desk:#1f3044;--paper:#f1ecdf;--paper2:#e4ddca;--text:#1b1b1b;--amber:#e8b04a;--red:#c4432c;--green:#3f8f6b;--mute:#9fb0c2}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--ink);color:#e9eef4;font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.55;min-height:100vh}
-main{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+:root{--ink:#111a24;--desk:#1c2c3f;--paper:#f1ecdf;--paper2:#e2dac4;--text:#1b1b1b;--amber:#e8b04a;--red:#d8452c;--green:#3f9a6f;--mute:#9fb0c2}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:radial-gradient(circle at 50% -10%,#24384f,var(--ink) 60%);color:#e9eef4;font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.5;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:16px 16px 70px}
 .ar{font-family:'Amiri',serif;direction:rtl;line-height:1.9}
-h1{margin:8px 0 0;font-size:clamp(2.6rem,11vw,4.4rem);font-weight:700;line-height:1.3;color:var(--amber)}
-.sub{margin:0 0 22px;color:var(--mute)}
-.bar{height:8px;background:var(--desk);border-radius:8px;overflow:hidden;margin:6px 0 4px}
-.bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .4s}
-h2{font-size:1.15rem;margin:28px 0 10px;font-weight:800}
+h1{margin:4px 0 0;font-size:clamp(2.4rem,10vw,4rem);color:var(--amber);font-weight:700;line-height:1.3;text-shadow:0 0 24px #e8b04a44}
+h2{font-size:1.1rem;margin:24px 0 8px;font-weight:800}
+.sub{margin:0 0 14px;color:var(--mute)}
+.hud{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;background:#0c131bee;backdrop-filter:blur(6px);padding:10px 14px;border-radius:8px;margin:8px 0;border:1px solid #2d445e;font-weight:800}
+.hud .h{font-size:1.3rem;letter-spacing:2px}
+.hud.hit{animation:hit .5s}
+@keyframes hit{0%,100%{background:#0c131bee}30%{background:#7a1f12}}
 .story{background:var(--desk);border-left:4px solid var(--red);padding:14px 16px;border-radius:4px}
-.clues{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.bar{height:8px;background:var(--desk);border-radius:8px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .4s}
+.hint{color:var(--mute);font-size:.92rem}
 button{font:inherit;cursor:pointer}
 button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.clue{background:var(--paper);color:var(--text);border:0;border-radius:4px;padding:12px;text-align:left;box-shadow:0 3px 0 #0006;position:relative}
+.clues{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.clue{background:var(--paper);color:var(--text);border:0;border-radius:4px;padding:12px;text-align:left;box-shadow:0 3px 0 #0007;position:relative;transform:rotate(-.6deg)}
+.clue:nth-child(even){transform:rotate(.6deg)}
 .clue b{display:block}.clue small{color:#5a5a5a}
 .clue.done{background:var(--paper2)}
-.clue.done::after{content:"✔";position:absolute;right:10px;top:8px;color:var(--green);font-weight:800}
+.clue.done::after{content:"TERBUKTI";position:absolute;right:6px;top:8px;color:var(--green);border:2px solid var(--green);font-size:.6rem;font-weight:800;padding:0 4px;transform:rotate(8deg)}
 .clue.open{outline:3px solid var(--amber)}
-.panel{background:var(--paper);color:var(--text);border-radius:6px;padding:18px;margin-top:14px}
-.panel .say{font-size:1.9rem;background:var(--paper2);padding:8px 14px;border-radius:4px;margin:10px 0}
+.panel{background:var(--paper);color:var(--text);border-radius:6px;padding:18px;margin-top:14px;box-shadow:0 6px 0 #0007}
+.tbar{height:10px;background:#cfc8b4;border-radius:6px;overflow:hidden;margin:8px 0}
+.tbar i{display:block;height:100%;width:100%;background:var(--green)}
+.tbar.low i{background:var(--red)}
+.say{font-size:1.9rem;background:var(--paper2);padding:8px 14px;border-radius:4px;margin:10px 0}
+.say.h2{font-family:inherit;direction:ltr;font-size:1rem;color:#555}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
 .mini{background:transparent;border:2px solid var(--text);color:var(--text);border-radius:20px;padding:6px 14px;font-weight:600}
 .opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid #cfc8b4;border-radius:6px;padding:10px 12px;margin:6px 0;color:var(--text)}
-.opt:hover{border-color:var(--text)}
+.opt:hover:not(:disabled){border-color:var(--text)}
 .opt.ok{background:#d5eadd;border-color:var(--green)}
-.opt.no{background:#f4d6cf;border-color:var(--red)}
+.opt.no{background:#f4d6cf;border-color:var(--red);text-decoration:line-through}
 .note{margin-top:10px;padding:10px 12px;background:#fff6dc;border-left:4px solid var(--amber);border-radius:3px}
 .tr{font-style:italic;color:#444}
 .sus{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.s{background:var(--desk);border:2px solid #2d445e;border-radius:6px;padding:12px;text-align:center;color:#e9eef4}
-.s .ar{font-size:1.7rem;display:block}
+.s{background:var(--desk);border:2px solid #2d445e;border-radius:8px;padding:12px;text-align:center;color:#e9eef4}
+.s .em{font-size:2rem;display:block}.s .ar{font-size:1.7rem;display:block}
 .s.clear{opacity:.5}.s.clear .ar{text-decoration:line-through}
-.s.pick:hover:not(:disabled){border-color:var(--amber)}
+.s.sus2{border-color:var(--red)}
+.s:not(:disabled):hover{border-color:var(--amber)}
 .s:disabled{cursor:not-allowed}
-.hint{color:var(--mute);font-size:.92rem}
-.end{background:var(--paper);color:var(--text);border-radius:6px;padding:20px;margin-top:16px}
-.end h3{margin:0 0 8px;font-size:1.4rem}
+.tag{display:block;font-size:.8rem;color:var(--mute)}
+.end{background:var(--paper);color:var(--text);border-radius:8px;padding:20px;margin-top:16px}
+.end h3{margin:0 0 8px;font-size:1.5rem}
 .go{background:var(--amber);border:0;border-radius:6px;padding:10px 18px;font-weight:800;color:#222;margin-top:8px}
 .shake{animation:sh .3s}
-@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-@media (prefers-reduced-motion:reduce){.shake{animation:none}.bar i{transition:none}}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.shake,.hud.hit{animation:none}.bar i{transition:none}}
 </style>
 </head>
 <body>
 <main>
 <h1 class="ar" lang="ar">مُحَقِّقُ اللُّغَة</h1>
-<p class="sub">Detektif Bahasa Arab. Pecahkan kasus dengan membaca dan mendengarkan bahasa Arab.</p>
+<p class="sub">Detektif Bahasa Arab. Kamu punya 3 nyawa. Salah jawab atau kehabisan waktu, nyawa berkurang.</p>
+<div class="hud" id="hud"></div>
 
 <h2>Kasus 1: Buku Dosen Hilang</h2>
-<div class="story">Kamis siang, buku langka milik Ustadz di ruang dosen lenyap. Ada empat mahasiswa yang dicurigai. Kumpulkan lima petunjuk, pahami isinya, lalu tuduh pelaku yang tepat.</div>
+<div class="story">Buku langka milik Ustadz lenyap dari ruang dosen. Empat mahasiswa dicurigai, dan tidak semua petunjuk mengarah ke pelaku sebenarnya. Pahami kesaksian berbahasa Arab, cocokkan alibi, lalu tuduh dengan tepat. Salah menuduh juga memotong nyawa.</div>
 
 <h2>Petunjuk</h2>
 <div class="bar"><i id="fill"></i></div>
@@ -74,83 +84,114 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 
 <script>
 const suspects=[
- {k:'khalid',ar:'خَالِد',n:'Khalid',bag:'hijau'},
- {k:'fatimah',ar:'فَاطِمَة',n:'Fatimah',bag:'merah muda'},
- {k:'maryam',ar:'مَرْيَم',n:'Maryam',bag:'merah'},
- {k:'ahmad',ar:'أَحْمَد',n:'Ahmad',bag:'hitam'}
+ {k:'khalid',ar:'خَالِد',n:'Khalid',em:'🧑‍🎓',bag:'hitam'},
+ {k:'fatimah',ar:'فَاطِمَة',n:'Fatimah',em:'👩‍🎓',bag:'merah muda'},
+ {k:'maryam',ar:'مَرْيَم',n:'Maryam',em:'🧕',bag:'merah'},
+ {k:'ahmad',ar:'أَحْمَد',n:'Ahmad',em:'🧑‍💼',bag:'hitam'}
 ];
 const clues=[
- {t:'Catatan Ustadz',type:'baca',ar:'كَانَ الْكِتَابُ عَلَى الْمَكْتَبِ فِي غُرْفَتِي. اخْتَفَى بَيْنَ الظُّهْرِ وَالْعَصْرِ.',
-  tr:'Buku itu ada di meja di ruanganku. Ia hilang antara zuhur dan asar.',
-  q:'Kapan buku itu hilang?',o:['Setelah magrib','Antara zuhur dan asar','Sebelum subuh'],a:1,
-  note:'Buku hilang antara zuhur dan asar. Cek siapa yang punya alibi di waktu itu.'},
- {t:'Saksi: satpam',type:'dengar',ar:'رَأَيْتُ خَالِدًا فِي الْمَكْتَبَةِ بَعْدَ الظُّهْرِ.',
-  tr:'Aku melihat Khalid di perpustakaan setelah zuhur.',
-  q:'Di mana Khalid setelah zuhur?',o:['Di kantin','Di kelas','Di perpustakaan'],a:2,
-  note:'Khalid di perpustakaan, bukan di ruang dosen.',clear:'khalid'},
- {t:'Saksi: penjual kantin',type:'dengar',ar:'كَانَتْ فَاطِمَةُ فِي الْكَانْتِينِ مَعَ صَدِيقَاتِهَا حَتَّى الْعَصْرِ.',
-  tr:'Fatimah di kantin bersama teman-temannya sampai asar.',
-  q:'Fatimah bersama siapa di kantin?',o:['Bersama dosen','Sendirian','Bersama teman-temannya'],a:2,
-  note:'Fatimah di kantin sampai asar.',clear:'fatimah'},
- {t:'Saksi: dosen lain',type:'dengar',ar:'كَانَتْ مَرْيَمُ فِي الْفَصْلِ مَعِي حَتَّى الْعَصْرِ.',
-  tr:'Maryam ada di kelas bersamaku sampai asar.',
-  q:'Maryam ada di mana sampai asar?',o:['Di kelas','Di asrama','Di masjid'],a:0,
-  note:'Maryam di kelas bersama dosen.',clear:'maryam'},
- {t:'Kamera & laporan',type:'baca',ar:'خَرَجَ طَالِبٌ مِنْ غُرْفَةِ الْأُسْتَاذِ وَمَعَهُ حَقِيبَةٌ سَوْدَاءُ.',
+ {t:'Catatan Ustadz',type:'baca',ar:'كَانَ الْكِتَابُ عَلَى مَكْتَبِي فِي الظُّهْرِ. عِنْدَمَا رَجَعْتُ بَعْدَ الْعَصْرِ لَمْ أَجِدْهُ.',
+  tr:'Buku itu ada di mejaku saat zuhur. Ketika aku kembali setelah asar, aku tidak menemukannya.',
+  q:'Kapan Ustadz baru menyadari bukunya hilang?',o:['Saat zuhur','Setelah asar','Sebelum zuhur'],a:1,
+  note:'Buku hilang di antara zuhur dan asar. Cari siapa yang punya alibi di rentang itu.'},
+ {t:'Saksi: satpam',type:'dengar',ar:'كَانَ خَالِدٌ فِي الْمَكْتَبَةِ مِنَ السَّاعَةِ الْوَاحِدَةِ حَتَّى الْعَصْرِ.',
+  tr:'Khalid ada di perpustakaan dari jam satu sampai asar.',
+  q:'Sampai kapan Khalid berada di perpustakaan?',o:['Sampai zuhur','Sampai asar','Sampai jam satu','Sampai magrib'],a:1,
+  note:'Khalid di perpustakaan sepanjang waktu kejadian. Tas hitamnya tidak cukup untuk menuduhnya.',clear:'khalid'},
+ {t:'Saksi: penjual kantin',type:'dengar',ar:'لَمْ أَرَ فَاطِمَةَ فِي الْكَانْتِينِ قَبْلَ الْعَصْرِ.',
+  tr:'Aku tidak melihat Fatimah di kantin sebelum asar.',
+  q:'Apa maksud kesaksian penjual kantin?',o:['Fatimah sudah di kantin sejak zuhur','Penjual tidak melihat Fatimah sebelum asar','Fatimah pergi dari kantin setelah asar'],a:1,
+  note:'Alibi kantin Fatimah runtuh. Ia sekarang mencurigakan, tapi jangan tuduh dulu.',sus:'fatimah'},
+ {t:'Saksi: pustakawan',type:'baca',ar:'كَانَتْ فَاطِمَةُ تَجْلِسُ بِجَانِبِ خَالِدٍ وَتَكْتُبُ بَحْثًا.',
+  tr:'Fatimah duduk di samping Khalid dan menulis makalah.',
+  q:'Di mana Fatimah dan apa yang ia lakukan?',o:['Di kantin, sedang makan','Di kelas, mendengarkan dosen','Di perpustakaan, menulis makalah'],a:2,
+  note:'Fatimah bersama Khalid di perpustakaan. Alibinya sah lewat alibi Khalid.',clear:'fatimah'},
+ {t:'Saksi: perawat',type:'dengar',ar:'جَاءَتْ مَرْيَمُ إِلَى الْعِيَادَةِ لِأَنَّهَا مَرِيضَةٌ، وَبَقِيَتْ هُنَاكَ حَتَّى الْعَصْرِ.',
+  tr:'Maryam datang ke klinik karena sakit, dan ia tinggal di sana sampai asar.',
+  q:'Mengapa Maryam datang ke klinik?',o:['Karena mencari buku','Karena ia sakit','Karena bertemu dosen'],a:1,
+  note:'Maryam di klinik sampai asar. Ia bebas.',clear:'maryam'},
+ {t:'Laporan kamera',type:'baca',ar:'خَرَجَ طَالِبٌ مِنْ غُرْفَةِ الْأُسْتَاذِ وَمَعَهُ حَقِيبَةٌ سَوْدَاءُ.',
   tr:'Seorang mahasiswa keluar dari ruangan Ustadz membawa tas hitam.',
-  q:'Apa yang dibawa mahasiswa itu?',o:['Tas hitam','Tas merah','Kotak hijau'],a:0,
-  note:'Pelaku membawa tas hitam. Tas siapa yang hitam? Lihat kartu tersangka.',hl:true}
+  q:'Apa yang dibawa mahasiswa yang keluar dari ruangan?',o:['Tas merah','Tas hitam','Sebuah kotak buku'],a:1,
+  note:'Pelaku bertas hitam. Khalid dan Ahmad sama-sama bertas hitam, tetapi salah satunya punya alibi.',bagclue:true}
 ];
-const solved=new Set();let open=null,showTr=false,done=false;
+const T=30;
+let lives,score,streak,solved,open,tleft,timer,showTxt,showTr,over,failed;
 const $=id=>document.getElementById(id);
 
+function start(){lives=3;score=0;streak=0;solved=new Set();open=null;showTxt=false;showTr=false;over=false;failed=new Set();
+  clearInterval(timer);$('panel').innerHTML='';$('end').innerHTML='';render()}
 function speak(t){
   if(!('speechSynthesis' in window)){alert('Browser ini tidak mendukung suara. Coba Chrome atau Safari.');return}
-  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=.8;speechSynthesis.speak(u);
-}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=.8;speechSynthesis.speak(u)}
 function render(){
   const n=solved.size;
+  $('hud').innerHTML=`<span class="h" aria-label="${lives} nyawa">${'❤️'.repeat(lives)}${'🖤'.repeat(3-lives)}</span><span>Skor ${score}</span><span>Streak ${streak}🔥</span>`;
   $('fill').style.width=(n/clues.length*100)+'%';
-  $('count').textContent=n+' dari '+clues.length+' petunjuk terpecahkan';
-  $('clues').innerHTML=clues.map((c,i)=>`<button class="clue ${solved.has(i)?'done':''} ${open===i?'open':''}" onclick="openClue(${i})"><b>${c.t}</b><small>${c.type==='baca'?'Baca teks':'Dengarkan'}</small></button>`).join('');
+  $('count').textContent=n+' dari '+clues.length+' petunjuk terbukti';
+  $('clues').innerHTML=clues.map((c,i)=>`<button class="clue ${solved.has(i)?'done':''} ${open===i?'open':''}" ${over?'disabled':''} onclick="openClue(${i})"><b>${c.t}</b><small>${c.type==='baca'?'📄 Baca teks':'🎧 Dengarkan'}</small></button>`).join('');
   const cleared=new Set([...solved].map(i=>clues[i].clear).filter(Boolean));
-  const all=n===clues.length;
+  const sus2=solved.has(2)&&!solved.has(3);
+  const all=n===clues.length&&!over;
   $('sus').innerHTML=suspects.map(s=>{
-    const hl=solved.has(4)?`<small class="hint">Tas ${s.bag}</small>`:'';
-    return `<button class="s pick ${cleared.has(s.k)?'clear':''}" ${all&&!done?'':'disabled'} onclick="accuse('${s.k}')"><span class="ar" lang="ar">${s.ar}</span>${s.n}<br>${hl}${cleared.has(s.k)?'<small class="hint">Punya alibi</small>':''}</button>`}).join('');
-  $('accHint').textContent=all?(done?'':'Semua petunjuk terkumpul. Tap tersangka yang menurutmu pelaku.'):'Selesaikan semua petunjuk untuk membuka tuduhan.';
+    const c=cleared.has(s.k),warn=s.k==='fatimah'&&sus2;
+    return `<button class="s ${c?'clear':''} ${warn?'sus2':''}" ${all?'':'disabled'} onclick="accuse('${s.k}')"><span class="em">${s.em}</span><span class="ar" lang="ar">${s.ar}</span>${s.n}${solved.has(5)?`<span class="tag">Tas ${s.bag}</span>`:''}${c?'<span class="tag">Punya alibi</span>':''}${warn?'<span class="tag">Mencurigakan</span>':''}</button>`}).join('');
+  $('accHint').textContent=over?'':all?'Semua bukti terkumpul. Tuduh dengan hati-hati, salah tuduh mengurangi nyawa.':'Buktikan semua petunjuk untuk membuka tuduhan.';
 }
-function openClue(i){open=i;showTr=false;drawPanel()}
-function drawPanel(){
+function openClue(i){
+  if(over)return;open=i;showTxt=false;showTr=false;clearInterval(timer);tleft=T;
+  if(!solved.has(i))timer=setInterval(tick,100);
+  drawPanel()}
+function tick(){
+  tleft-=.1;const b=$('tb');
+  if(b){b.firstElementChild.style.width=Math.max(0,tleft/T*100)+'%';b.classList.toggle('low',tleft<10)}
+  if(tleft<=0){tleft=T;streak=0;loseLife('Waktu habis!')}}
+function loseLife(msg){
+  lives--;const h=$('hud');render();h.classList.remove('hit');void h.offsetWidth;h.classList.add('hit');
+  if(lives<=0){gameOver();return}
+  const p=$('panel');if(open!==null&&!solved.has(open)){drawPanel(msg)}}
+function drawPanel(msg){
   render();
   if(open===null){$('panel').innerHTML='';return}
-  const c=clues[open],ok=solved.has(open);
-  const text=c.type==='dengar'&&!ok&&!showTxt?`<div class="say hint" style="direction:ltr;font-family:inherit;font-size:1rem">Tekan Dengarkan. Teks disembunyikan supaya kamu melatih menyimak.</div>`:`<div class="say ar" lang="ar">${c.ar}</div>`;
-  $('panel').innerHTML=`<div class="panel"><b>${c.t}</b>${text}
+  const c=clues[open],ok=solved.has(open),hide=c.type==='dengar'&&!ok&&!showTxt;
+  $('panel').innerHTML=`<div class="panel"><b>${c.t}</b>
+  ${ok?'':'<div class="tbar" id="tb"><i></i></div>'}
+  ${hide?`<div class="say h2">Teks disembunyikan. Tekan Dengarkan dan simak baik-baik.</div>`:`<div class="say ar" lang="ar">${c.ar}</div>`}
   <div class="row"><button class="mini" onclick="speak(clues[${open}].ar)">🔊 Dengarkan</button>
-  ${c.type==='dengar'&&!ok?`<button class="mini" onclick="showTxt=!showTxt;drawPanel()">${showTxt?'Sembunyikan':'Tampilkan'} teks</button>`:''}
-  <button class="mini" onclick="showTr=!showTr;drawPanel()">Terjemahan</button></div>
-  ${showTr?`<p class="tr">${c.tr}</p>`:''}
+  ${hide?`<button class="mini" onclick="showTxt=true;score=Math.max(0,score-50);drawPanel()">Buka teks (-50)</button>`:''}
+  ${!ok&&!showTr?`<button class="mini" onclick="showTr=true;score=Math.max(0,score-30);drawPanel()">Terjemahan (-30)</button>`:''}</div>
+  ${(showTr||ok)?`<p class="tr">${c.tr}</p>`:''}
+  ${msg?`<p class="note" style="border-color:var(--red);background:#fde3dd"><b>${msg}</b> Nyawa berkurang.</p>`:''}
   <p><b>${c.q}</b></p>
-  ${c.o.map((o,j)=>`<button class="opt ${ok&&j===c.a?'ok':''}" ${ok?'disabled':''} onclick="answer(${j},this)">${o}</button>`).join('')}
+  ${c.o.map((o,j)=>`<button class="opt ${ok&&j===c.a?'ok':''} ${failed.has(open+'-'+j)?'no':''}" ${ok||failed.has(open+'-'+j)?'disabled':''} onclick="answer(${j})">${o}</button>`).join('')}
   ${ok?`<div class="note"><b>Catatan detektif:</b> ${c.note}</div>`:''}</div>`;
-}
-let showTxt=false;
-function answer(j,el){
+  if(!ok)tleft=Math.min(tleft,T)}
+function answer(j){
   const c=clues[open];
-  if(j===c.a){solved.add(open);drawPanel()}
-  else{el.classList.add('no','shake');el.textContent+='  (belum tepat, dengarkan atau baca lagi)'}
-}
+  if(j===c.a){
+    clearInterval(timer);
+    const gain=Math.round((100+tleft*4)*(1+Math.min(streak,3)*.25));
+    score+=gain;streak++;solved.add(open);drawPanel();
+  }else{
+    failed.add(open+'-'+j);streak=0;loseLife('Jawaban salah!')}}
+function gameOver(){
+  clearInterval(timer);over=true;render();$('panel').innerHTML='';
+  $('end').innerHTML=`<div class="end"><h3>Kasus gagal. Nyawamu habis.</h3><p>Pelaku lolos kali ini. Skor akhir: ${score}. Dengarkan lebih teliti dan cocokkan alibi sebelum menuduh.</p><button class="go" onclick="start()">Ulangi kasus</button></div>`;
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
 function accuse(k){
-  const s=suspects.find(x=>x.k===k);done=true;render();
-  const win=k==='ahmad';
-  $('end').innerHTML=win?`<div class="end"><h3>Kasus selesai! Pelakunya Ahmad.</h3>
-   <p>Khalid, Fatimah, dan Maryam punya alibi dari kesaksian berbahasa Arab. Kamera merekam mahasiswa bertas hitam, dan hanya tas Ahmad yang hitam.</p>
-   <p class="ar" lang="ar" style="font-size:1.6rem">أَحْمَدُ أَخَذَ الْكِتَابَ. أَحْسَنْتَ يَا مُحَقِّقُ!</p>
-   <button class="go" onclick="location.reload()">Main lagi</button></div>`
-  :`<div class="end"><h3>${s.n} bukan pelakunya.</h3><p>Buka lagi catatan detektif: siapa yang punya alibi, dan siapa yang membawa tas hitam?</p><button class="go" onclick="done=false;$('end').innerHTML='';render()">Coba lagi</button></div>`;
-}
-render();
+  if(k==='ahmad'){
+    over=true;score+=lives*300;render();
+    const rank=lives===3?'Detektif Legendaris 🏆':lives===2?'Detektif Senior 🥈':'Detektif Muda 🥉';
+    $('end').innerHTML=`<div class="end"><h3>Kasus selesai! Pelakunya Ahmad.</h3>
+    <p>Khalid, Fatimah, dan Maryam punya alibi dari kesaksian berbahasa Arab. Tas hitam milik Khalid menyesatkan, karena Khalid terbukti di perpustakaan. Hanya Ahmad yang bertas hitam dan tanpa alibi.</p>
+    <p class="ar" lang="ar" style="font-size:1.6rem">أَحْمَدُ أَخَذَ الْكِتَابَ. أَحْسَنْتَ يَا مُحَقِّقُ!</p>
+    <p><b>Peringkat: ${rank}</b><br>Skor akhir: ${score} (bonus nyawa +${lives*300})</p>
+    <button class="go" onclick="start()">Main lagi</button></div>`;
+    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})
+  }else{
+    const s=suspects.find(x=>x.k===k);streak=0;loseLife('Salah tuduh!');
+    if(!over)$('end').innerHTML=`<div class="end"><h3>${s.n} bukan pelakunya.</h3><p>Cek lagi: siapa yang punya alibi, dan siapa yang bertas hitam tanpa alibi?</p></div>`}}
+start();
 </script>
 </body>
 </html>
