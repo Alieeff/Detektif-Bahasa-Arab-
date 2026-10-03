@@ -125,4 +125,105 @@ function render(){
   const all=n===tot&&!over&&!keyMode;
   $('sus').innerHTML=l.sus.map(s=>{
     const m=fx.filter(f=>f.k===s.k),c=m.some(f=>f.clear),w=!c&&m.some(f=>f.warn);
-    return `<button class="s ${c?'clear':''} ${w?'warn':''}" ${all?'':'disabled'} onclick="accuse('${s.k
+    return `<button class="s ${c?'clear':''} ${w?'warn':''}" ${all?'':'disabled'} onclick="accuse('${s.k}')"><span class="em">${s.em}</span><span class="ar" lang="ar">${s.ar}</span>${s.n}${m.map(f=>`<span class="tag">${f.tag}</span>`).join('')}</button>`}).join('');
+  $('accHint').textContent=over?'':keyMode?'':all?'Semua bukti terkumpul. Salah tuduh mengurangi nyawa.':'Buktikan semua petunjuk untuk membuka tuduhan.'}
+function openClue(i){
+  if(over||open===i||locked(i))return;
+  if(open!==null&&!solved.has(open))left[open]=tleft;
+  open=i;showTxt=false;showTr=false;vmsg=null;typed='';clearInterval(timer);
+  tleft=left[i]!==undefined?left[i]:T;
+  if(!solved.has(i))timer=setInterval(tick,100);
+  drawPanel()}
+function tick(){
+  tleft-=.1;left[open]=tleft;const b=$('tb');
+  if(b){b.firstElementChild.style.width=Math.max(0,tleft/T*100)+'%';b.classList.toggle('low',tleft<T/3)}
+  if(tleft<=0){tleft=T;streak=0;loseLife('Waktu habis!')}}
+function loseLife(msg){
+  lives--;const h=$('hud');render();h.classList.remove('hit');void h.offsetWidth;h.classList.add('hit');
+  if(lives<=0){gameOver();return}
+  if(Math.random()<.15)scare();
+  if(open!==null&&!solved.has(open))drawPanel(msg)}
+function drawPanel(msg){
+  render();
+  if(open===null){$('panel').innerHTML='';return}
+  const l=L(),c=l.clues[open],ok=solved.has(open),mode=c.mode||'pilih',hide=c.type==='dengar'&&!ok&&!showTxt;
+  const rem=l.plays-(plays[open]||0),lim=c.type==='dengar'&&!ok;
+  let ans='';
+  if(mode==='pilih')ans=c.o.map((o,j)=>{const f=failed.has(open+'-'+j);return `<button class="opt ${ok&&j===c.a?'ok':''} ${f?'no':''}" ${ok||f?'disabled':''} onclick="answer(${j})">${o}</button>`}).join('');
+  else if(!ok&&mode==='ketik')ans=`<p class="hint" style="color:#555">Jawab dengan <b>menulis huruf Arab</b>. Harakat tidak wajib.</p><div class="row"><input class="ti" id="ti" type="text" dir="rtl" lang="ar" autocomplete="off" style="font-family:'Amiri',serif;font-size:1.4rem" placeholder="اكتب إجابتك هنا" value="${typed.replace(/"/g,'&quot;')}" oninput="typed=this.value" onkeydown="if(event.key==='Enter')submitType()" aria-label="Ketik jawaban dalam bahasa Arab"><button class="mini" onclick="submitType()">Kirim</button></div>`;
+  else if(!ok)ans=`<p class="hint" style="color:#555">Jawab dengan <b>mengucapkan bahasa Arab</b>. Tekan tombol lalu bicara dengan jelas.</p><button class="mini" style="font-size:1.1rem;padding:10px 20px" onclick="listenVoice()">🎤 Ucapkan jawabanmu</button>${vmsg?`<p class="note"><b>${vmsg.t}</b></p>`:''}`;
+  $('panel').innerHTML=`<div class="panel"><b>${c.t}</b>${mode!=='pilih'?` <span class="hint" style="color:#555">· Mode ${mode==='ketik'?'tulis Arab':'ucap Arab'}</span>`:''}
+  ${ok?'':'<div class="tbar" id="tb"><i></i></div>'}
+  ${hide?`<div class="say h2">Teks disembunyikan. Tekan Dengarkan dan simak baik-baik.</div>`:`<div class="say ar" lang="ar">${c.ar}</div>`}
+  <div class="row"><button class="mini" ${lim&&rem<=0?'disabled':''} onclick="play()">🔊 Dengarkan${lim?' ('+rem+' tersisa)':''}</button>
+  ${hide?`<button class="mini" onclick="showTxt=true;score=Math.max(0,score-50);drawPanel()">Buka teks (-50)</button>`:''}
+  ${!ok&&!showTr?`<button class="mini" onclick="showTr=true;score=Math.max(0,score-30);drawPanel()">Terjemahan (-30)</button>`:''}</div>
+  ${(showTr||ok)?`<p class="tr">${c.tr}</p>`:''}
+  ${msg?`<p class="note" style="border-color:var(--red);background:#fde3dd"><b>${msg}</b> Nyawa berkurang.</p>`:''}
+  <p><b>${c.q}</b></p>
+  ${ans}
+  ${ok?`<div class="note"><b>Catatan detektif:</b> ${c.note}${mode!=='pilih'?`<br><b>Jawaban Arab:</b> <span class="ar" lang="ar">${c.ans[0]}</span>`:''}</div>`:''}</div>`}
+let vmsg=null,rec=null,typed='';
+function okAr(alts,c){
+  return alts.some(a=>{const h=narm(a).split(' ');
+    return c.ans.some(x=>{const t=narm(x).split(' ').filter(Boolean);return t.length&&t.filter(w=>h.includes(w)).length>=Math.ceil(t.length*.8)})})}
+function judge(alts,lbl){
+  vmsg=null;const c=L().clues[open];
+  if(okAr(alts,c))solveClue();
+  else{streak=0;loseLife('Jawaban belum tepat. '+lbl+': «'+alts[0]+'».')}}
+function submitType(){
+  const v=(typed||'').trim();
+  if(!v){drawPanel('Tulis jawabanmu dulu.');return}
+  typed='';judge([v],'Kamu menulis')}
+function listenVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){vmsg={t:'Browser ini belum mendukung input suara. Coba Chrome di Android atau Safari terbaru.'};drawPanel();return}
+  try{rec&&rec.abort()}catch(e){}
+  rec=new SR();rec.lang='ar-SA';rec.interimResults=false;rec.maxAlternatives=5;
+  vmsg={t:'🎤 Mendengarkan... ucapkan jawabanmu dalam bahasa Arab'};drawPanel();
+  rec.onresult=e=>judge([...e.results[0]].map(a=>a.transcript),'Terdengar');
+  rec.onerror=e=>{vmsg={t:e.error==='not-allowed'?'Izin mikrofon ditolak. Aktifkan di pengaturan browser.':'Suara tidak tertangkap. Coba lagi.'};drawPanel()};
+  rec.onend=()=>{if(vmsg&&vmsg.t.startsWith('🎤')){vmsg={t:'Tidak ada suara terdengar. Coba lagi.'};drawPanel()}};
+  try{rec.start()}catch(e){}}
+function solveClue(){
+  clearInterval(timer);
+  score+=Math.round((100+tleft*4)*(1+Math.min(streak,3)*.25))+lvi*30;
+  streak++;solved.add(open);drawPanel()}
+function answer(j){
+  const c=L().clues[open];
+  if(j===c.a)solveClue();
+  else{failed.add(open+'-'+j);streak=0;loseLife('Jawaban salah!')}}
+function modal(cls,html){$('end').innerHTML=`<div class="modal" role="alertdialog" aria-modal="true"><div class="box ${cls}">${html}</div></div>`;const b=$('mbtn');if(b)b.focus()}
+function gameOver(){
+  clearInterval(timer);over=true;render();$('panel').innerHTML='';
+  scare(()=>modal('',`<div style="font-size:4rem">💔</div><h3>Anda Kalah!</h3>
+  <p class="ar" lang="ar" style="font-size:2rem;margin:0;color:var(--red)">خَسِرْتَ الْقَضِيَّةَ</p>
+  <p>Nyawamu habis di Level ${lvi+1} dan pelaku berhasil lolos.</p><p><b>Skor akhir: ${score}</b></p>
+  <button class="go" id="mbtn" onclick="newGame()">Mulai dari Level 1</button>`))}
+function accuse(k){
+  const l=L();
+  if(k===l.culprit){keyMode=true;render();keyCard()}
+  else{const s=l.sus.find(x=>x.k===k);streak=0;loseLife('Salah tuduh!');
+    if(!over)$('end').innerHTML=`<div class="end"><h3>${s.n} bukan pelakunya.</h3><p>Cek ulang siapa yang punya alibi dan siapa yang berbohong.</p></div>`}}
+function keyCard(){
+  const q=L().key;
+  $('end').innerHTML=`<div class="end"><h3>Tuduhanmu diterima hakim. Apa alasanmu?</h3><p><b>${q.q}</b></p>
+  ${q.o.map((o,j)=>{const f=keyFail.has(j);return `<button class="opt ${f?'no':''}" ${f?'disabled':''} onclick="keyAns(${j})">${o}</button>`}).join('')}</div>`;
+  $('end').scrollIntoView({behavior:'smooth',block:'center'})}
+function keyAns(j){
+  if(j===L().key.a){levelClear();return}
+  keyFail.add(j);streak=0;loseLife('Alasan salah!');if(!over)keyCard()}
+function levelClear(){
+  const bonus=lives*200;score+=bonus;render();
+  if(lvi<LV.length-1){
+    modal('win',`<div style="font-size:4rem">🕵️</div><h3>Level ${lvi+1} selesai!</h3>
+    <p class="ar" lang="ar" style="font-size:1.8rem;margin:0">أَحْسَنْتَ!</p>
+    <p>Bonus nyawa +${bonus}. Skor: ${score}.<br>Kamu mendapat 1 nyawa tambahan (maksimal 3).</p>
+    <button class="go" id="mbtn" onclick="lvi++;lives=Math.min(3,lives+1);load()">Lanjut ke Level ${lvi+2}</button>`)
+  }else{
+    const rank=lives===3?'Detektif Legendaris 🏆':lives===2?'Detektif Senior 🥈':'Detektif Muda 🥉';
+    modal('win',`<div style="font-size:4rem">🏆</div><h3>Semua kasus terpecahkan!</h3>
+    <p class="ar" lang="ar" style="font-size:1.8rem;margin:0">مُحَقِّقٌ عَظِيمٌ!</p>
+    <p><b>Peringkat: ${rank}</b><br>Skor akhir: ${score}</p>
+    <button class="go" id="mbtn" onclick="newGame()">Main lagi</button>`)}}
+newGame();
