@@ -1,4 +1,3 @@
-
 const LV=[
 {title:'Buku Dosen Hilang',T:30,plays:3,culprit:'ahmad',
  story:'Buku langka milik Ustadz lenyap dari ruang dosen. Empat mahasiswa dicurigai. Cocokkan alibi dengan kesaksian berbahasa Arab.',
