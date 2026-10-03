@@ -48,6 +48,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .opt.no{background:#f4d6cf;border-color:var(--red);text-decoration:line-through}
 .note{margin-top:10px;padding:10px 12px;background:#fff6dc;border-left:4px solid var(--amber);border-radius:3px}
 .tr{font-style:italic;color:#444}
+.ti{flex:1;min-width:0;font:inherit;padding:10px 12px;border:2px solid var(--text);border-radius:6px;background:#fff;color:var(--text)}
 .sus{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .s{background:var(--desk);border:2px solid #2d445e;border-radius:8px;padding:12px;text-align:center;color:#e9eef4}
 .s .em{font-size:2rem;display:block}.s .ar{font-size:1.7rem;display:block}
@@ -67,6 +68,12 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .box .go{font-size:1.1rem;padding:12px 28px}
 @keyframes fade{from{opacity:0}}
 @keyframes pop{from{transform:scale(.85);opacity:0}}
+.scare{position:fixed;inset:0;z-index:99;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:flash .5s steps(1) 3}
+.scare span{font-size:70vmin;line-height:1;animation:zoom 1.4s ease-in forwards,jit .08s infinite}
+.scare img{width:100%;height:100%;object-fit:cover;animation:zoom 1.4s ease-in forwards,jit .08s infinite}
+@keyframes zoom{from{transform:scale(.2)}to{transform:scale(1.15)}}
+@keyframes jit{25%{translate:-10px 6px}75%{translate:10px -6px}}
+@keyframes flash{50%{background:#a00}}
 .shake{animation:sh .3s}
 @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){.shake,.hud.hit,.modal,.box{animation:none}.bar i{transition:none}}
@@ -75,7 +82,8 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 <body>
 <main>
 <h1 class="ar" lang="ar">مُحَقِّقُ اللُّغَة</h1>
-<p class="sub">Detektif Bahasa Arab. 3 level, 3 nyawa untuk seluruh permainan. Nyawa hanya pulih 1 setiap naik level.</p>
+<p class="sub">Detektif Bahasa Arab. 4 level, 3 nyawa untuk seluruh permainan. Nyawa hanya pulih 1 setiap naik level.</p>
+<label class="hint"><input type="checkbox" id="scareTgl" checked onchange="setScare(this.checked)"> Efek kejutan aktif (ada suara keras dan getar)</label>
 <div class="hud" id="hud"></div>
 <h2 id="title"></h2>
 <div class="story" id="story"></div>
@@ -131,16 +139,72 @@ const LV=[
  {t:'Guru lab',type:'baca',req:[5],ar:'قَالَتِ الْمُعَلِّمَةُ: بَدَأَتْ حِصَّةُ الْمُخْتَبَرِ فِي الْعَاشِرَةِ وَانْتَهَتْ فِي الْحَادِيَةَ عَشْرَةَ، وَكَانَتْ لَيْلَى حَاضِرَةً.',tr:'Guru berkata: Pelajaran lab mulai jam sepuluh dan selesai jam sebelas, dan Layla hadir.',q:'Apakah alibi Layla cocok dengan waktu kejadian?',o:['Ya, pelajaran lab berlangsung jam 10 sampai 11','Tidak, pelajaran selesai jam 9','Tidak, Layla terlambat satu jam'],a:0,note:'Layla punya alibi penuh.',fx:[{k:'layla',tag:'Alibi: pelajaran lab',clear:1}]},
  {t:'Kunci lemari',type:'baca',req:[0],ar:'كَانَ الْمِفْتَاحُ مَعَ إِبْرَاهِيمَ، لَكِنَّهُ كَانَ فِي الْمَلْعَبِ مَعَ الْفَرِيقِ حَتَّى الْحَادِيَةَ عَشْرَةَ.',tr:'Kunci ada pada Ibrahim, tetapi ia di lapangan bersama tim sampai jam sebelas.',q:'Mengapa Ibrahim tidak bisa jadi pelaku meski memegang kunci?',o:['Ia sakit','Ia di lapangan bersama tim sampai jam 11','Ia sedang di rumah','Kuncinya rusak'],a:1,note:'Memegang kunci tidak cukup. Ibrahim punya alibi.',fx:[{k:'ibrahim',tag:'Alibi: lapangan',clear:1}]}
  ]}
+,{title:'Proyektor Hilang',T:35,plays:3,culprit:'idris',
+ story:'Proyektor kelas lenyap pada hari Minggu pagi. Kali ini tidak ada pilihan jawaban: kamu harus MENULIS atau MENGUCAPKAN jawabanmu dalam bahasa Arab.',
+ sus:[{k:'bilal',ar:'بِلَال',n:'Bilal',em:'🧑‍🎓'},{k:'sara',ar:'سَارَة',n:'Sara',em:'👩‍🏫'},{k:'idris',ar:'إِدْرِيس',n:'Idris',em:'🧑'},{k:'huda',ar:'هُدَى',n:'Huda',em:'🧕'}],
+ key:{q:'Mengapa pelakunya Idris?',o:['Karena ia paling pendiam','Ia berbohong soal alibi dan tiga lainnya punya alibi kuat','Karena Bilal membencinya'],a:1},
+ clues:[
+ {t:'Laporan petugas',type:'baca',mode:'ketik',ar:'اخْتَفَى جِهَازُ الْعَرْضِ مِنَ الْفَصْلِ يَوْمَ الْأَحَدِ صَبَاحًا.',tr:'Proyektor hilang dari kelas pada hari Minggu pagi.',q:'Tulis dalam bahasa Arab: hari apa proyektor hilang?',ans:['يَوْمَ الْأَحَدِ','الْأَحَدِ'],note:'Proyektor hilang pada hari Minggu pagi.'},
+ {t:'Saksi: asisten lab',type:'dengar',mode:'suara',ar:'رَأَيْتُ بِلَالًا فِي الْمُخْتَبَرِ مَعَ الدُّكْتُورِ طَوَالَ الصَّبَاحِ.',tr:'Aku melihat Bilal di laboratorium bersama dosen sepanjang pagi.',q:'Ucapkan dalam bahasa Arab: di mana Bilal terlihat?',ans:['فِي الْمُخْتَبَرِ','الْمُخْتَبَرِ'],note:'Bilal di laboratorium sepanjang pagi.',fx:[{k:'bilal',tag:'Alibi: laboratorium',clear:1}]},
+ {t:'Jadwal kelas',type:'baca',mode:'ketik',ar:'كَانَتْ سَارَةُ تُدَرِّسُ طُلَّابًا فِي الْفَصْلِ الثَّانِي طَوَالَ الصَّبَاحِ.',tr:'Sara mengajar beberapa mahasiswa di kelas kedua sepanjang pagi.',q:'Tulis dalam bahasa Arab: apa yang dilakukan Sara?',ans:['تُدَرِّسُ طُلَّابًا','تُدَرِّسُ'],note:'Sara mengajar sepanjang pagi, jadi ia punya alibi.',fx:[{k:'sara',tag:'Alibi: mengajar',clear:1}]},
+ {t:'Pengakuan Idris',type:'dengar',mode:'suara',ar:'قَالَ إِدْرِيسُ: كُنْتُ فِي الْبَيْتِ.',tr:'Idris berkata: Aku di rumah.',q:'Ucapkan dalam bahasa Arab: Idris mengaku berada di mana?',ans:['فِي الْبَيْتِ','الْبَيْتِ'],note:'Idris mengaku di rumah. Klaim ini harus diuji.',fx:[{k:'idris',tag:'Mengaku di rumah'}]},
+ {t:'Rekaman gerbang',type:'baca',mode:'ketik',req:[3],ar:'دَخَلَ إِدْرِيسُ الْجَامِعَةَ عِنْدَ السَّاعَةِ التَّاسِعَةِ صَبَاحًا.',tr:'Idris masuk universitas pada jam sembilan pagi.',q:'Tulis dalam bahasa Arab: jam berapa Idris masuk kampus?',ans:['السَّاعَةِ التَّاسِعَةِ','التَّاسِعَةِ'],note:'Idris berbohong: ia ada di kampus pada pagi itu, bukan di rumah.',fx:[{k:'idris',tag:'Bohong soal rumah',warn:1}]},
+ {t:'Saksi: satpam perpustakaan',type:'dengar',mode:'suara',req:[4],ar:'لَمْ تَخْرُجْ هُدَى مِنَ الْمَكْتَبَةِ حَتَّى الظُّهْرِ.',tr:'Huda tidak keluar dari perpustakaan sampai zuhur.',q:'Ucapkan dalam bahasa Arab: sampai kapan Huda di perpustakaan?',ans:['حَتَّى الظُّهْرِ','الظُّهْرِ'],note:'Huda di perpustakaan sampai zuhur. Ia bebas.',fx:[{k:'huda',tag:'Alibi: perpustakaan',clear:1}]}
+ ]}
 ];
+const OA=[
+[['فِي الظُّهْرِ','بَعْدَ الْعَصْرِ','قَبْلَ الظُّهْرِ'],
+ ['حَتَّى الظُّهْرِ','حَتَّى الْعَصْرِ','حَتَّى السَّاعَةِ الْوَاحِدَةِ','حَتَّى الْمَغْرِبِ'],
+ ['فَاطِمَةُ فِي الْكَانْتِينِ مِنَ الظُّهْرِ','لَمْ يَرَ الْبَائِعُ فَاطِمَةَ قَبْلَ الْعَصْرِ','ذَهَبَتْ فَاطِمَةُ مِنَ الْكَانْتِينِ بَعْدَ الْعَصْرِ'],
+ ['فِي الْكَانْتِينِ تَأْكُلُ','فِي الْفَصْلِ تَسْمَعُ الْأُسْتَاذَ','فِي الْمَكْتَبَةِ تَكْتُبُ بَحْثًا'],
+ ['لِأَنَّهَا تَبْحَثُ عَنْ كِتَابٍ','لِأَنَّهَا مَرِيضَةٌ','لِأَنَّهَا تُقَابِلُ الْأُسْتَاذَ'],
+ ['حَقِيبَةٌ حَمْرَاءُ','حَقِيبَةٌ سَوْدَاءُ','صُنْدُوقُ كُتُبٍ']],
+[['قَبْلَ الْمَغْرِبِ','بَيْنَ الْمَغْرِبِ وَالْعِشَاءِ','بَعْدَ الْعِشَاءِ','طَوَالَ اللَّيْلِ'],
+ ['فِي الْمَطْبَخِ مَعَ يُوسُفَ','فِي الْمَسْجِدِ مَعَ عُمَرَ','فِي الْغُرْفَةِ مَعَ زَيْدٍ','خَارِجَ الْمَهْجَعِ وَحْدِي'],
+ ['رَأَى عُمَرُ حَسَنًا فِي الْمَسْجِدِ','لَمْ يَرَ عُمَرُ حَسَنًا فِي الْمَسْجِدِ','قَابَلَ عُمَرُ حَسَنًا فِي الْمَطْبَخِ'],
+ ['عُمَرُ كَذَبَ','حَسَنٌ كَذَبَ','كِلَاهُمَا صَادِقٌ','كِلَاهُمَا كَذَبَ'],
+ ['قَبْلَ الْمَغْرِبِ','بَعْدَ الْعِشَاءِ','بَعْدَ الْفَجْرِ','عِنْدَ الْمَغْرِبِ'],
+ ['شَهَادَةُ حَسَنٍ','تَسْجِيلُ الْكَامِيرَا','اعْتِرَافُ يُوسُفَ نَفْسِهِ'],
+ ['فِي الْمَطْبَخِ','فِي خِزَانَةِ حَسَنٍ','فِي الْمَسْجِدِ','فِي غُرْفَةِ زَيْدٍ']],
+[['مِنَ التَّاسِعَةِ إِلَى الْعَاشِرَةِ','مِنَ الْعَاشِرَةِ إِلَى الْحَادِيَةَ عَشْرَةَ','مِنَ الْحَادِيَةَ عَشْرَةَ إِلَى الثَّانِيَةَ عَشْرَةَ','مِنَ الثَّامِنَةِ إِلَى التَّاسِعَةِ'],
+ ['نِصْفُ سَاعَةٍ','سَاعَةٌ وَاحِدَةٌ','سَاعَتَانِ','سَاعَةٌ وَنِصْفٌ'],
+ ['فِي الْمَلْعَبِ','فِي غُرْفَةِ الْمُدِيرِ','فِي الْمَكْتَبَةِ','فِي الْمُخْتَبَرِ'],
+ ['السَّاعَةُ التَّاسِعَةُ','السَّاعَةُ الْعَاشِرَةُ','السَّاعَةُ الْحَادِيَةَ عَشْرَةَ','السَّاعَةُ الثَّامِنَةُ'],
+ ['جَاءَتْ نُورٌ مُتَأَخِّرَةً','لَمْ تَدْخُلْ نُورٌ الْمَكْتَبَةَ أَبَدًا','اسْتَعَارَتْ نُورٌ كِتَابًا صَبَاحًا','تَحْرُسُ نُورٌ الْمَكْتَبَةَ'],
+ ['فِي الْمُخْتَبَرِ مَعَ الْمُعَلِّمَةِ','فِي الْكَانْتِينِ','فِي الْمَلْعَبِ'],
+ ['نَعَمْ، حِصَّةُ الْمُخْتَبَرِ مِنَ الْعَاشِرَةِ إِلَى الْحَادِيَةَ عَشْرَةَ','لَا، انْتَهَتِ الْحِصَّةُ فِي التَّاسِعَةِ','لَا، تَأَخَّرَتْ لَيْلَى سَاعَةً'],
+ ['هُوَ مَرِيضٌ','هُوَ فِي الْمَلْعَبِ مَعَ الْفَرِيقِ حَتَّى الْحَادِيَةَ عَشْرَةَ','هُوَ فِي الْبَيْتِ','الْمِفْتَاحُ مَكْسُورٌ']]
+];
+LV.forEach((l,i)=>l.clues.forEach((c,j)=>c.oa=OA[i]&&OA[i][j]));
+const narm=s=>s.replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[^\u0621-\u064A0-9\s]/g,' ').replace(/\s+/g,' ').trim().split(' ').map(w=>w.length>3?w.replace(/^ال/,''):w).join(' ');
 let lvi,lives,score,streak,solved,open,tleft,timer,showTxt,showTr,over,failed,left,plays,keyMode,keyFail,T;
 const $=id=>document.getElementById(id);
 const L=()=>LV[lvi];
 
+let scareOn=true;try{scareOn=localStorage.getItem('scare')!=='off'}catch(e){}
+function setScare(v){scareOn=v;try{localStorage.setItem('scare',v?'on':'off')}catch(e){}}
+function boom(){try{
+  const A=new(window.AudioContext||window.webkitAudioContext)(),t=A.currentTime,g=A.createGain();
+  g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+1.2);g.connect(A.destination);
+  const o=A.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(70,t+1.1);o.connect(g);o.start(t);o.stop(t+1.2);
+  const b=A.createBuffer(1,A.sampleRate*.6,A.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const n=A.createBufferSource();n.buffer=b;n.connect(g);n.start(t)}catch(e){}}
+function scare(cb){
+  if(!scareOn||matchMedia('(prefers-reduced-motion:reduce)').matches){cb&&cb();return}
+  const d=document.createElement('div');d.className='scare';d.setAttribute('aria-hidden','true');
+  d.innerHTML=scareImg?'<img src="scare.jpg" alt="">':'<span>'+['💀','👻','🤡','👹'][Math.random()*4|0]+'</span>';document.body.appendChild(d);
+  if(scareSnd){try{scareSnd.currentTime=0;scareSnd.volume=1;scareSnd.play().catch(boom)}catch(e){boom()}}else boom();
+  if(navigator.vibrate)navigator.vibrate([200,80,200]);
+  setTimeout(()=>{d.remove();cb&&cb()},1400)}
+let scareSnd=null;{const a=new Audio();a.preload='auto';a.oncanplaythrough=()=>{scareSnd=a};a.src='scare.mp3'}
+let scareImg=false;{const im=new Image();im.onload=()=>{scareImg=true};im.src='scare.jpg'}
+$('scareTgl').checked=scareOn;
 function newGame(){lives=3;score=0;lvi=0;load()}
 function load(){
   const l=L();T=l.T;streak=0;solved=new Set();open=null;showTxt=false;showTr=false;over=false;failed=new Set();left={};plays={};keyMode=false;keyFail=new Set();
   clearInterval(timer);$('panel').innerHTML='';$('end').innerHTML='';
-  $('title').textContent='Level '+(lvi+1)+' dari 3: '+l.title;$('story').textContent=l.story;
+  $('title').textContent='Level '+(lvi+1)+' dari '+LV.length+': '+l.title;$('story').textContent=l.story;
   render();window.scrollTo(0,0)}
 function speak(t){
   if(!('speechSynthesis' in window)){alert('Browser ini tidak mendukung suara. Coba Chrome atau Safari.');return}
@@ -152,7 +216,7 @@ function play(){
 function locked(i){return (L().clues[i].req||[]).some(r=>!solved.has(r))}
 function render(){
   const l=L(),n=solved.size,tot=l.clues.length;
-  $('hud').innerHTML=`<span class="h" aria-label="${lives} nyawa">${'❤️'.repeat(lives)}${'🖤'.repeat(3-lives)}</span><span>Level ${lvi+1}/3</span><span>Skor ${score}</span><span>Streak ${streak}🔥</span>`;
+  $('hud').innerHTML=`<span class="h" aria-label="${lives} nyawa">${'❤️'.repeat(lives)}${'🖤'.repeat(3-lives)}</span><span>Level ${lvi+1}/${LV.length}</span><span>Skor ${score}</span><span>Streak ${streak}🔥</span>`;
   $('fill').style.width=(n/tot*100)+'%';
   $('count').textContent=n+' dari '+tot+' petunjuk terbukti';
   $('clues').innerHTML=l.clues.map((c,i)=>{
@@ -167,7 +231,7 @@ function render(){
 function openClue(i){
   if(over||open===i||locked(i))return;
   if(open!==null&&!solved.has(open))left[open]=tleft;
-  open=i;showTxt=false;showTr=false;clearInterval(timer);
+  open=i;showTxt=false;showTr=false;vmsg=null;typed='';clearInterval(timer);
   tleft=left[i]!==undefined?left[i]:T;
   if(!solved.has(i))timer=setInterval(tick,100);
   drawPanel()}
@@ -178,13 +242,18 @@ function tick(){
 function loseLife(msg){
   lives--;const h=$('hud');render();h.classList.remove('hit');void h.offsetWidth;h.classList.add('hit');
   if(lives<=0){gameOver();return}
+  if(Math.random()<.15)scare();
   if(open!==null&&!solved.has(open))drawPanel(msg)}
 function drawPanel(msg){
   render();
   if(open===null){$('panel').innerHTML='';return}
-  const l=L(),c=l.clues[open],ok=solved.has(open),hide=c.type==='dengar'&&!ok&&!showTxt;
+  const l=L(),c=l.clues[open],ok=solved.has(open),mode=c.mode||'pilih',hide=c.type==='dengar'&&!ok&&!showTxt;
   const rem=l.plays-(plays[open]||0),lim=c.type==='dengar'&&!ok;
-  $('panel').innerHTML=`<div class="panel"><b>${c.t}</b>
+  let ans='';
+  if(mode==='pilih')ans=c.o.map((o,j)=>{const f=failed.has(open+'-'+j);return `<button class="opt ${ok&&j===c.a?'ok':''} ${f?'no':''}" ${ok||f?'disabled':''} onclick="answer(${j})">${o}</button>`}).join('');
+  else if(!ok&&mode==='ketik')ans=`<p class="hint" style="color:#555">Jawab dengan <b>menulis huruf Arab</b>. Harakat tidak wajib.</p><div class="row"><input class="ti" id="ti" type="text" dir="rtl" lang="ar" autocomplete="off" style="font-family:'Amiri',serif;font-size:1.4rem" placeholder="اكتب إجابتك هنا" value="${typed.replace(/"/g,'&quot;')}" oninput="typed=this.value" onkeydown="if(event.key==='Enter')submitType()" aria-label="Ketik jawaban dalam bahasa Arab"><button class="mini" onclick="submitType()">Kirim</button></div>`;
+  else if(!ok)ans=`<p class="hint" style="color:#555">Jawab dengan <b>mengucapkan bahasa Arab</b>. Tekan tombol lalu bicara dengan jelas.</p><button class="mini" style="font-size:1.1rem;padding:10px 20px" onclick="listenVoice()">🎤 Ucapkan jawabanmu</button>${vmsg?`<p class="note"><b>${vmsg.t}</b></p>`:''}`;
+  $('panel').innerHTML=`<div class="panel"><b>${c.t}</b>${mode!=='pilih'?` <span class="hint" style="color:#555">· Mode ${mode==='ketik'?'tulis Arab':'ucap Arab'}</span>`:''}
   ${ok?'':'<div class="tbar" id="tb"><i></i></div>'}
   ${hide?`<div class="say h2">Teks disembunyikan. Tekan Dengarkan dan simak baik-baik.</div>`:`<div class="say ar" lang="ar">${c.ar}</div>`}
   <div class="row"><button class="mini" ${lim&&rem<=0?'disabled':''} onclick="play()">🔊 Dengarkan${lim?' ('+rem+' tersisa)':''}</button>
@@ -193,22 +262,45 @@ function drawPanel(msg){
   ${(showTr||ok)?`<p class="tr">${c.tr}</p>`:''}
   ${msg?`<p class="note" style="border-color:var(--red);background:#fde3dd"><b>${msg}</b> Nyawa berkurang.</p>`:''}
   <p><b>${c.q}</b></p>
-  ${c.o.map((o,j)=>{const f=failed.has(open+'-'+j);return `<button class="opt ${ok&&j===c.a?'ok':''} ${f?'no':''}" ${ok||f?'disabled':''} onclick="answer(${j})">${o}</button>`}).join('')}
-  ${ok?`<div class="note"><b>Catatan detektif:</b> ${c.note}</div>`:''}</div>`}
+  ${ans}
+  ${ok?`<div class="note"><b>Catatan detektif:</b> ${c.note}${mode!=='pilih'?`<br><b>Jawaban Arab:</b> <span class="ar" lang="ar">${c.ans[0]}</span>`:''}</div>`:''}</div>`}
+let vmsg=null,rec=null,typed='';
+function okAr(alts,c){
+  return alts.some(a=>{const h=narm(a).split(' ');
+    return c.ans.some(x=>{const t=narm(x).split(' ').filter(Boolean);return t.length&&t.filter(w=>h.includes(w)).length>=Math.ceil(t.length*.8)})})}
+function judge(alts,lbl){
+  vmsg=null;const c=L().clues[open];
+  if(okAr(alts,c))solveClue();
+  else{streak=0;loseLife('Jawaban belum tepat. '+lbl+': «'+alts[0]+'».')}}
+function submitType(){
+  const v=(typed||'').trim();
+  if(!v){drawPanel('Tulis jawabanmu dulu.');return}
+  typed='';judge([v],'Kamu menulis')}
+function listenVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){vmsg={t:'Browser ini belum mendukung input suara. Coba Chrome di Android atau Safari terbaru.'};drawPanel();return}
+  try{rec&&rec.abort()}catch(e){}
+  rec=new SR();rec.lang='ar-SA';rec.interimResults=false;rec.maxAlternatives=5;
+  vmsg={t:'🎤 Mendengarkan... ucapkan jawabanmu dalam bahasa Arab'};drawPanel();
+  rec.onresult=e=>judge([...e.results[0]].map(a=>a.transcript),'Terdengar');
+  rec.onerror=e=>{vmsg={t:e.error==='not-allowed'?'Izin mikrofon ditolak. Aktifkan di pengaturan browser.':'Suara tidak tertangkap. Coba lagi.'};drawPanel()};
+  rec.onend=()=>{if(vmsg&&vmsg.t.startsWith('🎤')){vmsg={t:'Tidak ada suara terdengar. Coba lagi.'};drawPanel()}};
+  try{rec.start()}catch(e){}}
+function solveClue(){
+  clearInterval(timer);
+  score+=Math.round((100+tleft*4)*(1+Math.min(streak,3)*.25))+lvi*30;
+  streak++;solved.add(open);drawPanel()}
 function answer(j){
   const c=L().clues[open];
-  if(j===c.a){
-    clearInterval(timer);
-    score+=Math.round((100+tleft*4)*(1+Math.min(streak,3)*.25))+lvi*30;
-    streak++;solved.add(open);drawPanel();
-  }else{failed.add(open+'-'+j);streak=0;loseLife('Jawaban salah!')}}
+  if(j===c.a)solveClue();
+  else{failed.add(open+'-'+j);streak=0;loseLife('Jawaban salah!')}}
 function modal(cls,html){$('end').innerHTML=`<div class="modal" role="alertdialog" aria-modal="true"><div class="box ${cls}">${html}</div></div>`;const b=$('mbtn');if(b)b.focus()}
 function gameOver(){
   clearInterval(timer);over=true;render();$('panel').innerHTML='';
-  modal('',`<div style="font-size:4rem">💔</div><h3>Anda Kalah!</h3>
+  scare(()=>modal('',`<div style="font-size:4rem">💔</div><h3>Anda Kalah!</h3>
   <p class="ar" lang="ar" style="font-size:2rem;margin:0;color:var(--red)">خَسِرْتَ الْقَضِيَّةَ</p>
   <p>Nyawamu habis di Level ${lvi+1} dan pelaku berhasil lolos.</p><p><b>Skor akhir: ${score}</b></p>
-  <button class="go" id="mbtn" onclick="newGame()">Mulai dari Level 1</button>`)}
+  <button class="go" id="mbtn" onclick="newGame()">Mulai dari Level 1</button>`))}
 function accuse(k){
   const l=L();
   if(k===l.culprit){keyMode=true;render();keyCard()}
@@ -224,7 +316,7 @@ function keyAns(j){
   keyFail.add(j);streak=0;loseLife('Alasan salah!');if(!over)keyCard()}
 function levelClear(){
   const bonus=lives*200;score+=bonus;render();
-  if(lvi<2){
+  if(lvi<LV.length-1){
     modal('win',`<div style="font-size:4rem">🕵️</div><h3>Level ${lvi+1} selesai!</h3>
     <p class="ar" lang="ar" style="font-size:1.8rem;margin:0">أَحْسَنْتَ!</p>
     <p>Bonus nyawa +${bonus}. Skor: ${score}.<br>Kamu mendapat 1 nyawa tambahan (maksimal 3).</p>
